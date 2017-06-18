@@ -5,6 +5,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <unistd.h>
 #include "io.h"
 #include "network.h"
 #include "upnp.h"

@@ -10,12 +10,12 @@ fi
 
 NCURSES_HEADER_DEF=""
 
-if [[ -f /usr/include/ncursesw/ncursesw.h ]]; then
+if [[ -f /usr/include/ncurses.h ]]; then
+	NCURSES_HEADER_DEF="HAVE_NCURSES_H"
+elif [[ -f /usr/include/ncursesw/ncursesw.h ]]; then
 	NCURSES_HEADER_DEF="HAVE_NCURSESW_NCURSESW_H"
 elif [[ -f /usr/include/ncursesw.h ]]; then
 	NCURSES_HEADER_DEF="HAVE_NCURSESW_H"
-elif [[ -f /usr/include/ncurses.h ]]; then
-	NCURSES_HEADER_DEF="HAVE_NCURSES_H"
 else
 	echo "Please install ncurses..."
 	exit 0
