@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <locale.h>
 #include <ncurses.h>
+#include <sys/select.h>
 #include "io.h"
 #include "network.h"
 
@@ -237,7 +238,7 @@ static bool updateTextBox(void)
 		return false;
 	}
 
-	if (isascii(c) && blen < BUFFER_SIZE) {
+	if (c < 127 && c > 0 && blen < BUFFER_SIZE) {
 		if (bidx < blen)
 			memmove(&buffer[bidx + 1], &buffer[bidx], blen - bidx);
 		buffer[bidx] = (char) c;

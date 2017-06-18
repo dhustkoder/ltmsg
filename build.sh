@@ -7,7 +7,7 @@ if [[ "$CC" == "" ]]; then
 	CC="gcc"
 fi
 
-CFLAGS="-std=gnu11 -Wall -Wextra"
+CFLAGS="-std=c11 -Wall -Wextra"
 CFLAGS_DEBUG="${CFLAGS} -O0 -DDEBUG_ -fsanitize=address"
 CFLAGS_RELEASE="${CFLAGS} -O3"
 LIBS="-lminiupnpc -lncurses"
