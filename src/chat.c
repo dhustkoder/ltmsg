@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
+#include <wchar.h>
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
@@ -21,11 +22,11 @@ enum ChatCmd {
 
 
 static const struct ConnectionInfo* cinfo = NULL;     // connection information
-static char conn_buffer[BUFFER_SIZE]      = { '\0' }; // buffer for incoming msgs
+static char conn_buffer[BUFFER_SIZE]      = { '\0' }; // buffer for in/out msgs
 static char* chatstack[CHAT_STACK_SIZE]   = { NULL }; // the chat msg stack with unames
 static int chatstack_idx                  = 0;        // current chat stack index
 
-static char buffer[BUFFER_SIZE]           = { '\0' }; // text box's buffer for user input
+static wchar_t buffer[BUFFER_SIZE]        = { '\0' }; // text box's buffer for user input
 static int blen                           = 0;        // text box's current buffer size
 static int bidx                           = 0;        // text box's cursor position in the buffer
 static int cy, cx;                                    // current cursor position in the window
@@ -89,6 +90,7 @@ static int setKbdTimeout(const int delay)
 
 static void initializeUI(void)
 {
+	setlocale(LC_ALL, "");
 	initscr();
 	cbreak();
 	noecho();
@@ -191,7 +193,7 @@ static void refreshUI(void)
 	getmaxyx(stdscr, my, mx);
 	cy = hy + (bidx / mx);
 	cx = hx + (bidx % mx);
-	printw(buffer);
+	printw("%ls", buffer);
 	move(cy, cx);
 	refresh();
 }
@@ -199,13 +201,12 @@ static void refreshUI(void)
 
 static bool updateTextBox(void)
 {
-	const int c = getch();
-
-	if (c == ERR)
+	wint_t c;
+	if (get_wch(&c) == ERR)
 		return false;
 
 	#ifdef DEBUG_
-	stackInfo("KEY PRESSED %i", c);
+	stackInfo("KEY PRESSED %li", c);
 	#endif
 
 	switch (c) {
@@ -221,7 +222,8 @@ static bool updateTextBox(void)
 	case 127: // also backspace (ascii) [fall]
 	case KEY_BACKSPACE:
 		if (bidx > 0) {
-			memmove(&buffer[bidx - 1], &buffer[bidx], blen - bidx);
+			memmove(&buffer[bidx - 1], &buffer[bidx],
+			        sizeof(*buffer) * (blen - bidx));
 			buffer[--blen] = '\0';
 			moveCursorLeft();
 			refreshUI();
@@ -238,10 +240,11 @@ static bool updateTextBox(void)
 		return false;
 	}
 
-	if (c < 127 && c > 0 && blen < BUFFER_SIZE) {
+	if (blen < BUFFER_SIZE) {
 		if (bidx < blen)
-			memmove(&buffer[bidx + 1], &buffer[bidx], blen - bidx);
-		buffer[bidx] = (char) c;
+			memmove(&buffer[bidx + 1], &buffer[bidx],
+			        sizeof(*buffer) * (blen - bidx));
+		buffer[bidx] = (wchar_t) c;
 		buffer[++blen] = '\0';
 		moveCursorRight();
 		refreshUI();
@@ -288,20 +291,21 @@ int chat(const enum ConnectionMode mode)
 	initializeUI();
 	refreshUI();
 
-	const char *uname = NULL, *msg = NULL;
+	const char* uname = NULL;
 
 	for (;;) {
 		if (checkfd(cinfo->remote_fd)) {
 			readInto(conn_buffer, cinfo->remote_fd, BUFFER_SIZE);
 			uname = cinfo->remote_uname;
-			msg = conn_buffer;
 		} else if (updateTextBox()) {
-			writeInto(cinfo->remote_fd, buffer);
+			const wchar_t* pbuf = buffer;
+			wcsrtombs(conn_buffer, &pbuf, sizeof(conn_buffer), NULL);
+			writeInto(cinfo->remote_fd, conn_buffer);
 			uname = cinfo->local_uname;
-			msg = buffer;
 		}
 
-		if (uname != NULL && msg != NULL) {
+		if (uname != NULL) {
+			const char* const msg = conn_buffer;
 			const bool islocal = uname == cinfo->local_uname;
 
 			if (msg[0] == '/') {
@@ -315,7 +319,6 @@ int chat(const enum ConnectionMode mode)
 				clearTextBox();
 			
 			uname = NULL;
-			msg = NULL;
 			refreshUI();
 		}
 	}
