@@ -22,7 +22,7 @@ else
 	exit 0
 fi
 
-CFLAGS="-std=c11 -Wall -Wextra -DNCURSES_WIDECHAR -D${NCURSES_HEADER_DEF}"
+CFLAGS="-std=c11 -Wall -Wextra -Wno-unused-result -DNCURSES_WIDECHAR -D${NCURSES_HEADER_DEF}"
 CFLAGS_DEBUG="${CFLAGS} -DDEBUG_ -O0 -g -fsanitize=address"
 CFLAGS_RELEASE="${CFLAGS} -O3"
 LIBS="-lminiupnpc -lncursesw"
