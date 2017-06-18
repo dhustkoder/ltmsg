@@ -10,7 +10,7 @@ fi
 CFLAGS="-std=c11 -Wall -Wextra -DNCURSES_WIDECHAR"
 CFLAGS_DEBUG="${CFLAGS} -DDEBUG_ -O0 -g -fsanitize=address"
 CFLAGS_RELEASE="${CFLAGS} -O3"
-LIBS="-lminiupnpc -lncurses"
+LIBS="-lminiupnpc -lncursesw"
 
 if [[ "$1" == "release" ]]; then
 	CFLAGS=$CFLAGS_RELEASE
@@ -20,5 +20,5 @@ fi
 
 set -x
 mkdir -p $BUILD_DIR
-$CC $CFLAGS $LIBS $SRC_DIR/*.c -o $BUILD_DIR/ltmsg
+$CC $CFLAGS $SRC_DIR/*.c -o $BUILD_DIR/ltmsg $LIBS
 

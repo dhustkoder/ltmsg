@@ -5,8 +5,8 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include <locale.h>
-#include <ncurses.h>
 #include <sys/select.h>
+#include <ncursesw/ncurses.h>
 #include "io.h"
 #include "network.h"
 
