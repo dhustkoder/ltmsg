@@ -12,7 +12,7 @@
 
 
 #define CHAT_STACK_SIZE ((int)24)
-#define BUFFER_SIZE     ((int)512)
+#define BUFFER_SIZE     ((int)256)
 
 
 enum ChatCmd {
@@ -21,17 +21,17 @@ enum ChatCmd {
 };
 
 
-static const struct ConnectionInfo* cinfo = NULL;     // connection information
-static char conn_buffer[BUFFER_SIZE]      = { '\0' }; // buffer for in/out msgs
-static char* chatstack[CHAT_STACK_SIZE]   = { NULL }; // the chat msg stack with unames
-static int chatstack_idx                  = 0;        // current chat stack index
+static const struct ConnectionInfo* cinfo  = NULL;     // connection information
+static wchar_t conn_buffer[BUFFER_SIZE]    = { '\0' }; // buffer for in/out msgs
+static wchar_t* chatstack[CHAT_STACK_SIZE] = { NULL }; // the chat msg stack with unames
+static int chatstack_idx                   = 0;        // current chat stack index
 
-static wchar_t buffer[BUFFER_SIZE]        = { '\0' }; // text box's buffer for user input
-static int blen                           = 0;        // text box's current buffer size
-static int bidx                           = 0;        // text box's cursor position in the buffer
-static int cy, cx;                                    // current cursor position in the window
-static int my, mx;                                    // max y and x positions
-static int hy, hx;                                    // text box's home y and x (start position)
+static wchar_t buffer[BUFFER_SIZE]         = { '\0' }; // text box's buffer for user input
+static int blen                            = 0;        // text box's current buffer size
+static int bidx                            = 0;        // text box's cursor position in the buffer
+static int cy, cx;                                     // current cursor position in the window
+static int my, mx;                                     // max y and x positions
+static int hy, hx;                                     // text box's home y and x (start position)
 
 
 static void freeChatStack(void)
@@ -41,7 +41,7 @@ static void freeChatStack(void)
 }
 
 
-static void chatStackPushBack(char* str)
+static void chatStackPushBack(wchar_t* const str)
 {
 	if (chatstack_idx >= CHAT_STACK_SIZE) {
 		free(chatstack[0]);
@@ -53,25 +53,23 @@ static void chatStackPushBack(char* str)
 }
 
 
-static void stackMsg(const char* const uname, const char* const msg)
+static void stackMsg(const char* const uname, const wchar_t* const msg)
 {
-	char* const str = malloc(snprintf(NULL, 0, "%s: %s", uname, msg) + 1);
-	sprintf(str, "%s: %s", uname, msg);
+	const int chars = snprintf(NULL, 0, "%s: %ls", uname, msg);
+	wchar_t* const str = malloc(sizeof(wchar_t) * chars + sizeof(wchar_t));
+	swprintf(str, chars + 1, L"%s: %ls", uname, msg);
 	chatStackPushBack(str);
 }
 
 
-static void stackInfo(const char* const fmt, ...)
+static void stackInfo(const wchar_t* const fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
 
-	char* const str = malloc(vsnprintf(NULL, 0, fmt, args) + 1);
-
-	va_end(args);
-	va_start(args, fmt);
-
-	vsprintf(str, fmt, args);
+	vswprintf(conn_buffer, BUFFER_SIZE, fmt, args);
+	wchar_t* str = malloc(sizeof(wchar_t) * wcslen(conn_buffer) + sizeof(wchar_t));
+	wcscpy(str, conn_buffer);
 	chatStackPushBack(str);
 
 	va_end(args);
@@ -115,7 +113,7 @@ static void printUI(void)
 
 	int i;
 	for (i = 0; i < chatstack_idx; ++i)
-		printw("%s\n", chatstack[i]);
+		printw("%ls\n", chatstack[i]);
 	for (; i < CHAT_STACK_SIZE; ++i)
 		printw("\n");
 
@@ -206,7 +204,7 @@ static bool updateTextBox(void)
 		return false;
 
 	#ifdef DEBUG_
-	stackInfo("KEY PRESSED %li", c);
+	stackInfo(L"KEY PRESSED %li", c);
 	#endif
 
 	switch (c) {
@@ -240,7 +238,7 @@ static bool updateTextBox(void)
 		return false;
 	}
 
-	if (blen < BUFFER_SIZE) {
+	if (blen < (BUFFER_SIZE - 1)) {
 		if (bidx < blen)
 			memmove(&buffer[bidx + 1], &buffer[bidx],
 			        sizeof(*buffer) * (blen - bidx));
@@ -254,17 +252,17 @@ static bool updateTextBox(void)
 }
 
 
-static enum ChatCmd parseChatCmd(const char* const uname, const char* const cmd, const bool islocal)
+static enum ChatCmd parseChatCmd(const char* const uname, const wchar_t* const cmd, const bool islocal)
 {
-	if (strcmp(cmd, "/quit") == 0) {
-		stackInfo("Connection closed by %s. Press any key to exit...", uname);
+	if (wcscmp(cmd, L"/quit") == 0) {
+		stackInfo(L"Connection closed by %s. Press any key to exit...", uname);
 		refreshUI();
 		const int prev = setKbdTimeout(-1);
 		getch();
 		setKbdTimeout(prev);
 		return CHATCMD_QUIT;
 	} else if (islocal) {
-			stackInfo("Unknown command \'%s\'.", cmd);
+			stackInfo(L"Unknown command \'%ls\'.", cmd);
 	}
 
 	return CHATCMD_NORMAL;
@@ -291,21 +289,21 @@ int chat(const enum ConnectionMode mode)
 	initializeUI();
 	refreshUI();
 
-	const char* uname = NULL;
+	const char *uname = NULL;
+	const wchar_t *msg = NULL;
 
 	for (;;) {
 		if (checkfd(cinfo->remote_fd)) {
-			readInto(conn_buffer, cinfo->remote_fd, BUFFER_SIZE);
+			wreadInto(conn_buffer, cinfo->remote_fd, BUFFER_SIZE);
 			uname = cinfo->remote_uname;
+			msg = conn_buffer;
 		} else if (updateTextBox()) {
-			const wchar_t* pbuf = buffer;
-			wcsrtombs(conn_buffer, &pbuf, sizeof(conn_buffer), NULL);
-			writeInto(cinfo->remote_fd, conn_buffer);
+			wwriteInto(cinfo->remote_fd, buffer);
 			uname = cinfo->local_uname;
+			msg = buffer;
 		}
 
 		if (uname != NULL) {
-			const char* const msg = conn_buffer;
 			const bool islocal = uname == cinfo->local_uname;
 
 			if (msg[0] == '/') {

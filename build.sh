@@ -8,7 +8,7 @@ if [[ "$CC" == "" ]]; then
 fi
 
 CFLAGS="-std=c11 -Wall -Wextra -DNCURSES_WIDECHAR"
-CFLAGS_DEBUG="${CFLAGS} -DDEBUG_ -O0 -fsanitize=address"
+CFLAGS_DEBUG="${CFLAGS} -DDEBUG_ -O0 -g -fsanitize=address"
 CFLAGS_RELEASE="${CFLAGS} -O3"
 LIBS="-lminiupnpc -lncurses"
 
