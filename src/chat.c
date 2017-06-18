@@ -6,7 +6,15 @@
 #include <ctype.h>
 #include <locale.h>
 #include <sys/select.h>
+
+#ifdef HAVE_NCURSES_H
 #include <ncurses.h>
+#elif defined(HAVE_NCURSESW_H)
+#include <ncursesw.h>
+#elif defined(HAVE_NCURSESW_NCURSESW_H)
+#include <ncursesw/ncursesw.h>
+#endif
+
 #include "io.h"
 #include "network.h"
 

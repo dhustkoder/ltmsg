@@ -3,11 +3,25 @@ ROOT_DIR=$(dirname "$0")
 BUILD_DIR="${ROOT_DIR}/build"
 SRC_DIR="${ROOT_DIR}/src"
 
+
 if [[ "$CC" == "" ]]; then
 	CC="gcc"
 fi
 
-CFLAGS="-std=c11 -Wall -Wextra -DNCURSES_WIDECHAR"
+NCURSES_HEADER_DEF=""
+
+if [[ -f /usr/include/ncursesw/ncursesw.h ]]; then
+	NCURSES_HEADER_DEF="HAVE_NCURSESW_NCURSESW_H"
+elif [[ -f /usr/include/ncursesw.h ]]; then
+	NCURSES_HEADER_DEF="HAVE_NCURSESW_H"
+elif [[ -f /usr/include/ncurses.h ]]; then
+	NCURSES_HEADER_DEF="HAVE_NCURSES_H"
+else
+	echo "Please install ncurses..."
+	exit 0
+fi
+
+CFLAGS="-std=c11 -Wall -Wextra -DNCURSES_WIDECHAR -D${NCURSES_HEADER_DEF}"
 CFLAGS_DEBUG="${CFLAGS} -DDEBUG_ -O0 -g -fsanitize=address"
 CFLAGS_RELEASE="${CFLAGS} -O3"
 LIBS="-lminiupnpc -lncursesw"
