@@ -11,8 +11,8 @@
 #include <ncurses.h>
 #elif defined(HAVE_NCURSESW_H)
 #include <ncursesw.h>
-#elif defined(HAVE_NCURSESW_NCURSESW_H)
-#include <ncursesw/ncursesw.h>
+#elif defined(HAVE_NCURSESW_NCURSES_H)
+#include <ncursesw/ncurses.h>
 #endif
 
 #include "io.h"
