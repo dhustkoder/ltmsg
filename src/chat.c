@@ -46,6 +46,7 @@ static void freeChatStack(void)
 {
 	for (int i = 0; i < chatstack_idx; ++i)
 		free(chatstack[i]);
+	chatstack_idx = 0;
 }
 
 
@@ -269,8 +270,10 @@ static enum ChatCmd parseChatCmd(const char* const uname, const wchar_t* const c
 		getch();
 		setKbdTimeout(prev);
 		return CHATCMD_QUIT;
+	} else if (islocal && wcscmp(cmd, L"/clean") == 0) {
+		freeChatStack();
 	} else if (islocal) {
-			stackInfo(L"Unknown command \'%ls\'.", cmd);
+		stackInfo(L"Unknown command \'%ls\'.", cmd);
 	}
 
 	return CHATCMD_NORMAL;
