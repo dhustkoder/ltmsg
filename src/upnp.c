@@ -77,7 +77,7 @@ bool initialize_upnp(const char* const port)
 	        0      , // source port to use (or zero defaults to port 1900)
 	        0      , // 0==IPv4, 1==IPv6
 	        #if MINIUPNPC_API_VERSION >= 16
-		0      , // ttl (only on >= 16 MINIUPNC_API_VERSION)
+	        0      , // ttl (only on >= 16 MINIUPNC_API_VERSION)
 	        #endif
 	        &error); // error condition
 
