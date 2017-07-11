@@ -148,5 +148,7 @@ void terminate_upnp(void)
 		fprintf(stderr, "Couldn't delete port mapping: %s",
 		        strupnperror(error));
 	}
+
+	uninstallUPNPSigHandler();
 }
 

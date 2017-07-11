@@ -13,7 +13,6 @@
 
 static inline bool host(void);
 static inline bool client(void);
-void upnpSigHandler(int sig);
 
 
 static struct ConnectionInfo cinfo;
