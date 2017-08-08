@@ -17,14 +17,14 @@ static struct UPNPInfo {
 	const char* proto;
 } upnp_info = { .dev = NULL, .port = NULL, .proto = NULL };
 
-#define UPNP_SIGNUMS_SIZE ((int)3)
+
+#define UPNP_SIGNUMS_SIZE (3)
 static const int signums[UPNP_SIGNUMS_SIZE] = { SIGINT, SIGKILL, SIGTERM };
 static void(*prev_sig_handlers[UPNP_SIGNUMS_SIZE])(int) = { NULL };
-
+static void upnpSigHandler(int sig);
 
 static inline void installUPNPSigHandler(void)
 {
-	void upnpSigHandler(int);
 	for (int i = 0; i < UPNP_SIGNUMS_SIZE; ++i)
 		prev_sig_handlers[i] = signal(signums[i], upnpSigHandler);
 }
@@ -37,7 +37,7 @@ static inline void uninstallUPNPSigHandler(void)
 }
 
 
-void upnpSigHandler(const int sig)
+static void upnpSigHandler(const int sig)
 {
 	// remove port forwarding
 	terminate_upnp();

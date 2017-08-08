@@ -19,8 +19,8 @@
 #include "network.h"
 
 
-#define CHAT_STACK_SIZE ((int)24)
-#define BUFFER_SIZE     ((int)256)
+#define CHAT_STACK_SIZE (24)
+#define BUFFER_SIZE     (256)
 
 
 enum ChatCmd {
@@ -208,6 +208,8 @@ static void refreshUI(void)
 
 static bool updateTextBox(void)
 {
+	extern int get_wch(wint_t* wch);
+
 	wint_t c;
 	if (get_wch(&c) == ERR)
 		return false;
