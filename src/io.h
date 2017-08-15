@@ -23,10 +23,10 @@ static inline void writeInto(const int fd_dest, const char* const src)
 
 static inline void wreadInto(wchar_t* const dest, const int fdscr, const int maxsize)
 {
-	int n = read(fdscr, dest, maxsize * sizeof(wchar_t) - 1);
-	if ((n/sizeof(wchar_t)) > 1 && dest[(n/sizeof(wchar_t)) - 1] == L'\n')
+	int n = read(fdscr, dest, maxsize * sizeof(wchar_t) - 1) / sizeof(wchar_t);
+	if (n > 1 && dest[n - 1] == L'\n')
 		--n;
-	dest[n/sizeof(wchar_t)] = L'\0';
+	dest[n] = L'\0';
 }
 
 

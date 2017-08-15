@@ -1,9 +1,9 @@
 #ifndef LTMSG_NETWORK_H_
 #define LTMSG_NETWORK_H_
 
-#define UNAME_SIZE    ((int)24)
-#define IP_STR_SIZE   ((int)24)
-#define PORT_STR_SIZE ((int)6)
+#define UNAME_SIZE    (24)
+#define IP_STR_SIZE   (24)
+#define PORT_STR_SIZE (6)
 
 
 enum ConnectionMode {
