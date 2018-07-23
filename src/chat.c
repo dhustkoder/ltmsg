@@ -42,7 +42,7 @@ static int my, mx;                                     // max y and x positions
 static int hy, hx;                                     // text box's home y and x (start position)
 
 
-static void free_char_stack(void)
+static void free_stack(void)
 {
 	for (int i = 0; i < chatstack_idx; ++i)
 		free(chatstack[i]);
@@ -50,7 +50,7 @@ static void free_char_stack(void)
 }
 
 
-static void chat_stack_push(wchar_t* const str)
+static void stack_push(wchar_t* const str)
 {
 	if (chatstack_idx >= CHAT_STACK_SIZE) {
 		free(chatstack[0]);
@@ -67,7 +67,7 @@ static void stack_msg(const char* const uname, const wchar_t* const msg)
 	const int chars = snprintf(NULL, 0, "%s: %ls", uname, msg);
 	wchar_t* const str = malloc(sizeof(wchar_t) * chars + sizeof(wchar_t));
 	swprintf(str, chars + 1, L"%s: %ls", uname, msg);
-	chat_stack_push(str);
+	stack_push(str);
 }
 
 
@@ -79,7 +79,7 @@ static void stack_info(const wchar_t* const fmt, ...)
 	vswprintf(conn_buffer, BUFFER_SIZE, fmt, args);
 	wchar_t* str = malloc(sizeof(wchar_t) * wcslen(conn_buffer) + sizeof(wchar_t));
 	wcscpy(str, conn_buffer);
-	chat_stack_push(str);
+	stack_push(str);
 
 	va_end(args);
 }
@@ -263,7 +263,7 @@ static bool update_text_box(void)
 }
 
 
-static enum ChatCmd parseChatCmd(const char* const uname, const wchar_t* const cmd, const bool islocal)
+static enum ChatCmd parse_command(const char* const uname, const wchar_t* const cmd, const bool islocal)
 {
 	if (wcscmp(cmd, L"/quit") == 0) {
 		stack_info(L"Connection closed by %s. Press any key to exit...", uname);
@@ -273,7 +273,7 @@ static enum ChatCmd parseChatCmd(const char* const uname, const wchar_t* const c
 		set_kbd_timeout(prev);
 		return CHATCMD_QUIT;
 	} else if (islocal && wcscmp(cmd, L"/clean") == 0) {
-		free_char_stack();
+		free_stack();
 	} else if (islocal) {
 		stack_info(L"Unknown command \'%ls\'.", cmd);
 	}
@@ -320,7 +320,7 @@ int chat(const enum ConnectionMode mode)
 			const bool islocal = uname == cinfo->local_uname;
 
 			if (msg[0] == '/') {
-				if (parseChatCmd(uname, msg, islocal) == CHATCMD_QUIT)
+				if (parse_command(uname, msg, islocal) == CHATCMD_QUIT)
 					break;
 			} else {
 				stack_msg(uname, msg);
@@ -335,7 +335,7 @@ int chat(const enum ConnectionMode mode)
 	}
 
 	terminate_ui();
-	free_char_stack();
+	free_stack();
 	return EXIT_SUCCESS;
 }
 
