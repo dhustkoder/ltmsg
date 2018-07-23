@@ -42,7 +42,7 @@ static int my, mx;                                     // max y and x positions
 static int hy, hx;                                     // text box's home y and x (start position)
 
 
-static void freeChatStack(void)
+static void free_char_stack(void)
 {
 	for (int i = 0; i < chatstack_idx; ++i)
 		free(chatstack[i]);
@@ -50,7 +50,7 @@ static void freeChatStack(void)
 }
 
 
-static void chatStackPushBack(wchar_t* const str)
+static void chat_stack_push(wchar_t* const str)
 {
 	if (chatstack_idx >= CHAT_STACK_SIZE) {
 		free(chatstack[0]);
@@ -62,16 +62,16 @@ static void chatStackPushBack(wchar_t* const str)
 }
 
 
-static void stackMsg(const char* const uname, const wchar_t* const msg)
+static void stack_msg(const char* const uname, const wchar_t* const msg)
 {
 	const int chars = snprintf(NULL, 0, "%s: %ls", uname, msg);
 	wchar_t* const str = malloc(sizeof(wchar_t) * chars + sizeof(wchar_t));
 	swprintf(str, chars + 1, L"%s: %ls", uname, msg);
-	chatStackPushBack(str);
+	chat_stack_push(str);
 }
 
 
-static void stackInfo(const wchar_t* const fmt, ...)
+static void stack_info(const wchar_t* const fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
@@ -79,13 +79,13 @@ static void stackInfo(const wchar_t* const fmt, ...)
 	vswprintf(conn_buffer, BUFFER_SIZE, fmt, args);
 	wchar_t* str = malloc(sizeof(wchar_t) * wcslen(conn_buffer) + sizeof(wchar_t));
 	wcscpy(str, conn_buffer);
-	chatStackPushBack(str);
+	chat_stack_push(str);
 
 	va_end(args);
 }
 
 
-static int setKbdTimeout(const int delay)
+static int set_kbd_timeout(const int delay)
 {
 	static int curdelay = -1;
 	const int prevdelay = curdelay;
@@ -95,25 +95,25 @@ static int setKbdTimeout(const int delay)
 }
 
 
-static void initializeUI(void)
+static void initialize_ui(void)
 {
 	setlocale(LC_ALL, "");
 	initscr();
 	cbreak();
 	noecho();
 	intrflush(stdscr, FALSE);
-	setKbdTimeout(5);
+	set_kbd_timeout(5);
 	keypad(stdscr, TRUE);
 }
 
 
-static void terminateUI(void)
+static void terminate_ui(void)
 {
 	endwin();
 }
 
 
-static void printUI(void)
+static void print_ui(void)
 {
 	printw("Host: %s (%s). Client: %s (%s).\n"
 	       "=================================================\n",
@@ -130,7 +130,7 @@ static void printUI(void)
 }
 
 
-static void clearTextBox(void)
+static void clear_text_box(void)
 {
 	cy = hy;
 	cx = hx;
@@ -140,7 +140,7 @@ static void clearTextBox(void)
 }
 
 
-static void moveCursorLeft(void)
+static void move_cursor_left(void)
 {
 	if (cy > hy || cx > hx) {
 		--bidx;
@@ -154,7 +154,7 @@ static void moveCursorLeft(void)
 }
 
 
-static void moveCursorRight(void)
+static void move_cursor_right(void)
 {
 	if (bidx < blen) {
 		++bidx;
@@ -168,7 +168,7 @@ static void moveCursorRight(void)
 }
 
 
-static void moveCursorHome(void)
+static void move_cursor_begin(void)
 {
 	if (bidx != 0) {
 		bidx = 0;
@@ -179,7 +179,7 @@ static void moveCursorHome(void)
 }
 
 
-static void moveCursorEnd(void)
+static void move_cursor_end(void)
 {
 	if (bidx < blen) {
 		bidx = blen;
@@ -191,11 +191,11 @@ static void moveCursorEnd(void)
 
 
 
-static void refreshUI(void)
+static void refresh_ui(void)
 {
 	clear();
 	move(0, 0);
-	printUI();
+	print_ui();
 	getyx(stdscr, hy, hx);
 	getmaxyx(stdscr, my, mx);
 	cy = hy + (bidx / mx);
@@ -206,7 +206,7 @@ static void refreshUI(void)
 }
 
 
-static bool updateTextBox(void)
+static bool update_text_box(void)
 {
 	extern int get_wch(wint_t* wch);
 
@@ -215,7 +215,7 @@ static bool updateTextBox(void)
 		return false;
 
 	#ifdef DEBUG_
-	stackInfo(L"KEY PRESSED %li", c);
+	stack_info(L"KEY PRESSED %li", c);
 	#endif
 
 	switch (c) {
@@ -223,10 +223,10 @@ static bool updateTextBox(void)
 	case KEY_ENTER: // submit msg, if any
 		return blen > 0;
 	case KEY_LEFT:
-		moveCursorLeft();
+		move_cursor_left();
 		return false;
 	case KEY_RIGHT:
-		moveCursorRight();
+		move_cursor_right();
 		return false;
 	case 127: // also backspace (ascii) [fall]
 	case KEY_BACKSPACE:
@@ -234,18 +234,18 @@ static bool updateTextBox(void)
 			memmove(&buffer[bidx - 1], &buffer[bidx],
 			        sizeof(*buffer) * (blen - bidx));
 			buffer[--blen] = '\0';
-			moveCursorLeft();
-			refreshUI();
+			move_cursor_left();
+			refresh_ui();
 		}
 		return false;
 	case KEY_HOME:
-		moveCursorHome();
+		move_cursor_begin();
 		return false;
 	case KEY_END:
-		moveCursorEnd();
+		move_cursor_end();
 		return false;
 	case KEY_RESIZE:
-		refreshUI();
+		refresh_ui();
 		return false;
 	}
 
@@ -255,8 +255,8 @@ static bool updateTextBox(void)
 			        sizeof(*buffer) * (blen - bidx));
 		buffer[bidx] = (wchar_t) c;
 		buffer[++blen] = '\0';
-		moveCursorRight();
-		refreshUI();
+		move_cursor_right();
+		refresh_ui();
 	}
 
 	return false;
@@ -266,16 +266,16 @@ static bool updateTextBox(void)
 static enum ChatCmd parseChatCmd(const char* const uname, const wchar_t* const cmd, const bool islocal)
 {
 	if (wcscmp(cmd, L"/quit") == 0) {
-		stackInfo(L"Connection closed by %s. Press any key to exit...", uname);
-		refreshUI();
-		const int prev = setKbdTimeout(-1);
+		stack_info(L"Connection closed by %s. Press any key to exit...", uname);
+		refresh_ui();
+		const int prev = set_kbd_timeout(-1);
 		getch();
-		setKbdTimeout(prev);
+		set_kbd_timeout(prev);
 		return CHATCMD_QUIT;
 	} else if (islocal && wcscmp(cmd, L"/clean") == 0) {
-		freeChatStack();
+		free_char_stack();
 	} else if (islocal) {
-		stackInfo(L"Unknown command \'%ls\'.", cmd);
+		stack_info(L"Unknown command \'%ls\'.", cmd);
 	}
 
 	return CHATCMD_NORMAL;
@@ -296,22 +296,22 @@ static bool checkfd(const int fd)
 
 int chat(const enum ConnectionMode mode)
 {
-	if ((cinfo = initializeConnection(mode)) == NULL)
+	if ((cinfo = initialize_connection(mode)) == NULL)
 		return EXIT_FAILURE;
 
-	initializeUI();
-	refreshUI();
+	initialize_ui();
+	refresh_ui();
 
 	const char *uname = NULL;
 	const wchar_t *msg = NULL;
 
 	for (;;) {
 		if (checkfd(cinfo->remote_fd)) {
-			wreadInto(conn_buffer, cinfo->remote_fd, BUFFER_SIZE);
+			wread_into(conn_buffer, cinfo->remote_fd, BUFFER_SIZE);
 			uname = cinfo->remote_uname;
 			msg = conn_buffer;
-		} else if (updateTextBox()) {
-			wwriteInto(cinfo->remote_fd, buffer);
+		} else if (update_text_box()) {
+			wwrite_into(cinfo->remote_fd, buffer);
 			uname = cinfo->local_uname;
 			msg = buffer;
 		}
@@ -323,19 +323,19 @@ int chat(const enum ConnectionMode mode)
 				if (parseChatCmd(uname, msg, islocal) == CHATCMD_QUIT)
 					break;
 			} else {
-				stackMsg(uname, msg);
+				stack_msg(uname, msg);
 			}
 
 			if (islocal)
-				clearTextBox();
+				clear_text_box();
 			
 			uname = NULL;
-			refreshUI();
+			refresh_ui();
 		}
 	}
 
-	terminateUI();
-	freeChatStack();
+	terminate_ui();
+	free_char_stack();
 	return EXIT_SUCCESS;
 }
 

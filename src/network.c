@@ -11,14 +11,20 @@
 #include "upnp.h"
 
 
-static inline bool host(void);
-static inline bool client(void);
-
-
 static struct ConnectionInfo cinfo;
 
 
-const struct ConnectionInfo* initializeConnection(const enum ConnectionMode mode)
+static inline bool host(void);
+static inline bool client(void);
+
+static inline void askUserFor(const char* const msg, char* const dest, const int size)
+{
+	write_into(STDOUT_FILENO, msg);
+	read_into(dest, STDIN_FILENO, size);
+}
+
+
+const struct ConnectionInfo* initialize_connection(const enum ConnectionMode mode)
 {
 	if (mode == CONMODE_HOST) {
 		cinfo.local_uname = cinfo.host_uname;
@@ -55,7 +61,7 @@ const struct ConnectionInfo* initializeConnection(const enum ConnectionMode mode
 }
 
 
-void terminateConnection(const struct ConnectionInfo* const cinfo)
+void terminate_connection(const struct ConnectionInfo* const cinfo)
 {
 	if (cinfo->mode == CONMODE_HOST) {
 		close(cinfo->remote_fd);

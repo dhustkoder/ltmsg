@@ -26,8 +26,8 @@ struct ConnectionInfo {
 };
 
 
-extern const struct ConnectionInfo* initializeConnection(enum ConnectionMode mode);
-extern void terminateConnection(const struct ConnectionInfo* cinfo);
+extern const struct ConnectionInfo* initialize_connection(enum ConnectionMode mode);
+extern void terminate_connection(const struct ConnectionInfo* cinfo);
 
 
 
