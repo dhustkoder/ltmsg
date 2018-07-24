@@ -14,64 +14,11 @@
 static struct ConnectionInfo cinfo;
 
 
-static inline bool host(void);
-static inline bool client(void);
-
-static inline void askUserFor(const char* const msg, char* const dest, const int size)
+static inline void get_user_input(const char* const msg, char* const dest, const int size)
 {
 	write_into(STDOUT_FILENO, msg);
 	read_into(dest, STDIN_FILENO, size);
 }
-
-
-const struct ConnectionInfo* initialize_connection(const enum ConnectionMode mode)
-{
-	if (mode == CONMODE_HOST) {
-		cinfo.local_uname = cinfo.host_uname;
-		cinfo.remote_uname = cinfo.client_uname;
-	} else if (mode == CONMODE_CLIENT) {
-		cinfo.local_uname = cinfo.client_uname;
-		cinfo.remote_uname = cinfo.host_uname;
-	} else {
-		fprintf(stderr, "Unknown ConnectionMode value specified.\n");
-		return NULL;
-	}
-
-	cinfo.mode = mode;
-	askUserFor("Enter your username: ", cinfo.local_uname, UNAME_SIZE);
-	askUserFor("Enter the connection port: ", cinfo.port, PORT_STR_SIZE);
-	
-	if (mode == CONMODE_HOST) {
-		if (!host())
-			return NULL;
-		write(cinfo.remote_fd, cinfo.host_uname, UNAME_SIZE);
-		read(cinfo.remote_fd, cinfo.client_uname, UNAME_SIZE);
-		write(cinfo.remote_fd, cinfo.client_ip, IP_STR_SIZE);
-		read(cinfo.remote_fd, cinfo.host_ip, IP_STR_SIZE);
-	} else {
-		if (!client())
-			return NULL;
-		read(cinfo.remote_fd, cinfo.host_uname, UNAME_SIZE);
-		write(cinfo.remote_fd, cinfo.client_uname, UNAME_SIZE);
-		read(cinfo.remote_fd, cinfo.client_ip, IP_STR_SIZE);
-		write(cinfo.remote_fd, cinfo.host_ip, IP_STR_SIZE);
-	}
-	
-	return &cinfo;
-}
-
-
-void terminate_connection(const struct ConnectionInfo* const cinfo)
-{
-	if (cinfo->mode == CONMODE_HOST) {
-		close(cinfo->remote_fd);
-		close(cinfo->local_fd);
-		terminate_upnp();
-	} else if (cinfo->mode == CONMODE_CLIENT) {
-		close(cinfo->remote_fd);
-	}
-}
-
 
 static inline bool host(void)
 {
@@ -165,7 +112,6 @@ Lterminate_upnp:
 	return false;
 }
 
-
 static inline bool client(void)
 {
 	const int fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -178,7 +124,7 @@ static inline bool client(void)
 	 * for the given host name. Here name is either a hostname or an
 	 * IPv4 address.
 	 * */
-	askUserFor("Enter the host IP: ", cinfo.host_ip, IP_STR_SIZE);
+	get_user_input("Enter the host IP: ", cinfo.host_ip, IP_STR_SIZE);
 	struct hostent *hostent = gethostbyname(cinfo.host_ip);
 	if (hostent == NULL) {
 		perror("Couldn't get host by name");
@@ -206,4 +152,54 @@ Lclose_fd:
 	close(fd);
 	return false;
 }
+
+
+const struct ConnectionInfo* initialize_connection(const enum ConnectionMode mode)
+{
+	if (mode == CONMODE_HOST) {
+		cinfo.local_uname = cinfo.host_uname;
+		cinfo.remote_uname = cinfo.client_uname;
+	} else if (mode == CONMODE_CLIENT) {
+		cinfo.local_uname = cinfo.client_uname;
+		cinfo.remote_uname = cinfo.host_uname;
+	} else {
+		fprintf(stderr, "Unknown ConnectionMode value specified.\n");
+		return NULL;
+	}
+
+	cinfo.mode = mode;
+	get_user_input("Enter your username: ", cinfo.local_uname, UNAME_SIZE);
+	get_user_input("Enter the connection port: ", cinfo.port, PORT_STR_SIZE);
+	
+	if (mode == CONMODE_HOST) {
+		if (!host())
+			return NULL;
+		write(cinfo.remote_fd, cinfo.host_uname, UNAME_SIZE);
+		read(cinfo.remote_fd, cinfo.client_uname, UNAME_SIZE);
+		write(cinfo.remote_fd, cinfo.client_ip, IP_STR_SIZE);
+		read(cinfo.remote_fd, cinfo.host_ip, IP_STR_SIZE);
+	} else {
+		if (!client())
+			return NULL;
+		read(cinfo.remote_fd, cinfo.host_uname, UNAME_SIZE);
+		write(cinfo.remote_fd, cinfo.client_uname, UNAME_SIZE);
+		read(cinfo.remote_fd, cinfo.client_ip, IP_STR_SIZE);
+		write(cinfo.remote_fd, cinfo.host_ip, IP_STR_SIZE);
+	}
+	
+	return &cinfo;
+}
+
+
+void terminate_connection(const struct ConnectionInfo* const cinfo)
+{
+	if (cinfo->mode == CONMODE_HOST) {
+		close(cinfo->remote_fd);
+		close(cinfo->local_fd);
+		terminate_upnp();
+	} else if (cinfo->mode == CONMODE_CLIENT) {
+		close(cinfo->remote_fd);
+	}
+}
+
 
