@@ -75,8 +75,8 @@ void terminate_connection(const struct ConnectionInfo* const cinfo)
 
 static inline bool host(void)
 {
-	if (!initialize_upnp(cinfo.port))
-		return false;
+	//if (!initialize_upnp(cinfo.port))
+	//	return false;
 
 	/* socket(), creates an endpoint for communication and returns a
 	 * file descriptor that refers to that endpoint                */
