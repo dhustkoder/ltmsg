@@ -14,12 +14,10 @@ static inline void read_into(char* const dest, const int fdsrc, const int maxsiz
 	dest[n] = '\0';
 }
 
-
 static inline void write_into(const int fd_dest, const char* const src)
 {
 	write(fd_dest, src, strlen(src));
 }
-
 
 static inline void wread_into(wchar_t* const dest, const int fdscr, const int maxsize)
 {
@@ -28,7 +26,6 @@ static inline void wread_into(wchar_t* const dest, const int fdscr, const int ma
 		--n;
 	dest[n] = L'\0';
 }
-
 
 static inline void wwrite_into(const int fd_dest, const wchar_t* const src)
 {

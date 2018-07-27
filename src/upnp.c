@@ -131,7 +131,6 @@ Lfree_upnp_dev:
 	return false;
 }
 
-
 void terminate_upnp(void)
 {
 	const int error = UPNP_DeletePortMapping(upnp_info.urls.controlURL,
