@@ -49,7 +49,6 @@ static void free_stack(void)
 	chatstack_idx = 0;
 }
 
-
 static void stack_push(wchar_t* const str)
 {
 	if (chatstack_idx >= CHAT_STACK_SIZE) {
@@ -61,7 +60,6 @@ static void stack_push(wchar_t* const str)
 	chatstack[chatstack_idx++] = str;
 }
 
-
 static void stack_msg(const char* const uname, const wchar_t* const msg)
 {
 	const int chars = snprintf(NULL, 0, "%s: %ls", uname, msg);
@@ -69,7 +67,6 @@ static void stack_msg(const char* const uname, const wchar_t* const msg)
 	swprintf(str, chars + 1, L"%s: %ls", uname, msg);
 	stack_push(str);
 }
-
 
 static void stack_info(const wchar_t* const fmt, ...)
 {
@@ -84,7 +81,6 @@ static void stack_info(const wchar_t* const fmt, ...)
 	va_end(args);
 }
 
-
 static int set_kbd_timeout(const int delay)
 {
 	static int curdelay = -1;
@@ -93,7 +89,6 @@ static int set_kbd_timeout(const int delay)
 	timeout(curdelay);
 	return prevdelay;
 }
-
 
 static void initialize_ui(void)
 {
@@ -106,12 +101,10 @@ static void initialize_ui(void)
 	keypad(stdscr, TRUE);
 }
 
-
 static void terminate_ui(void)
 {
 	endwin();
 }
-
 
 static void print_ui(void)
 {
@@ -129,7 +122,6 @@ static void print_ui(void)
 	printw("==================================================\n> ");
 }
 
-
 static void clear_text_box(void)
 {
 	cy = hy;
@@ -138,7 +130,6 @@ static void clear_text_box(void)
 	bidx = 0;
 	buffer[0] = '\0';
 }
-
 
 static void move_cursor_left(void)
 {
@@ -153,7 +144,6 @@ static void move_cursor_left(void)
 	}
 }
 
-
 static void move_cursor_right(void)
 {
 	if (bidx < blen) {
@@ -167,7 +157,6 @@ static void move_cursor_right(void)
 	}
 }
 
-
 static void move_cursor_begin(void)
 {
 	if (bidx != 0) {
@@ -178,7 +167,6 @@ static void move_cursor_begin(void)
 	}
 }
 
-
 static void move_cursor_end(void)
 {
 	if (bidx < blen) {
@@ -188,8 +176,6 @@ static void move_cursor_end(void)
 		move(cy, cx);
 	}
 }
-
-
 
 static void refresh_ui(void)
 {
@@ -204,7 +190,6 @@ static void refresh_ui(void)
 	move(cy, cx);
 	refresh();
 }
-
 
 static bool update_text_box(void)
 {
@@ -262,7 +247,6 @@ static bool update_text_box(void)
 	return false;
 }
 
-
 static enum ChatCmd parse_command(const char* const uname, const wchar_t* const cmd, const bool islocal)
 {
 	if (wcscmp(cmd, L"/quit") == 0) {
@@ -280,7 +264,6 @@ static enum ChatCmd parse_command(const char* const uname, const wchar_t* const 
 
 	return CHATCMD_NORMAL;
 }
-
 
 static bool checkfd(const int fd)
 {
