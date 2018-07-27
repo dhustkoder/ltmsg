@@ -190,7 +190,6 @@ const struct ConnectionInfo* initialize_connection(const enum ConnectionMode mod
 	return &cinfo;
 }
 
-
 void terminate_connection(const struct ConnectionInfo* const cinfo)
 {
 	if (cinfo->mode == CONMODE_HOST) {
