@@ -22,8 +22,8 @@ static inline void get_user_input(const char* const msg, char* const dest, const
 
 static inline bool host(void)
 {
-	//if (!initialize_upnp(cinfo.port))
-	//	return false;
+	if (!initialize_upnp(cinfo.port))
+		return false;
 
 	/* socket(), creates an endpoint for communication and returns a
 	 * file descriptor that refers to that endpoint                */
