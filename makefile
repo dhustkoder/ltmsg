@@ -1,7 +1,8 @@
 CC:=$(if $(CC),$(CC),gcc)
-CFLAGS=-std=c11 -Wall -Wextra -pedantic -lminiupnpc -lncursesw
+CFLAGS=-std=c11 -Wall -Wextra -pedantic
 CFLAGS_DEBUG=-g -O0 -fsanitize=address
 CFLAGS_RELEASE=-O3
+LDFLAGS=-lminiupnpc 
 BUILD_DIR=./build
 OBJS_DIR=./objs
 ASM_DIR=./asm
@@ -23,10 +24,13 @@ endif
 
 ifeq (/usr/include/ncursesw/ncurses.h,$(wildcard /usr/include/ncursesw/ncurses.h))
 	CFLAGS += -DHAVE_NCURSESW_NCURSES_H
+	LDFLAGS += -lncurses
 else ifeq (/usr/include/ncursesw.h,$(wildcard /usr/include/ncursesw.h))
 	CFLAGS += -DHAVE_NCURSESW_H
+	LDFLAGS += -lncursesw
 else ifeq (/usr/include/ncurses.h,$(wildcard /usr/include/ncurses.h))
 	CFLAGS += -DHAVE_NCURSES_H
+	LDFLAGS += -lncurses
 else
 $(info No ncurses header found... Aborting)
 exit -1
@@ -42,7 +46,7 @@ asm: $(ASM)
 
 $(BUILD_DIR)/ltmsg: $(OBJS)
 	@mkdir -p $(BUILD_DIR) 
-	$(CC) $(OBJS)  $(CFLAGS) -o $@
+	$(CC) $(LDFLAGS) $(OBJS) $(CFLAGS) -o $@
 
 $(OBJS_DIR)/%.o: $(SRC)
 	@mkdir -p $(OBJS_DIR)
