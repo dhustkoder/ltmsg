@@ -24,7 +24,7 @@ endif
 
 ifeq (/usr/include/ncursesw/ncurses.h,$(wildcard /usr/include/ncursesw/ncurses.h))
 	CFLAGS += -DHAVE_NCURSESW_NCURSES_H
-	LDFLAGS += -lncurses
+	LDFLAGS += -lncursesw
 else ifeq (/usr/include/ncursesw.h,$(wildcard /usr/include/ncursesw.h))
 	CFLAGS += -DHAVE_NCURSESW_H
 	LDFLAGS += -lncursesw
@@ -46,7 +46,7 @@ asm: $(ASM)
 
 $(BUILD_DIR)/ltmsg: $(OBJS)
 	@mkdir -p $(BUILD_DIR) 
-	$(CC) $(LDFLAGS) $(OBJS) $(CFLAGS) -o $@
+	$(CC) $(OBJS) $(CFLAGS) $(LDFLAGS) -o $@
 
 $(OBJS_DIR)/%.o: $(SRC)
 	@mkdir -p $(OBJS_DIR)
